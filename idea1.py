@@ -103,6 +103,8 @@ for i in range(num_pages):
 
 
 print(link_list)
+
+link_list2 = link_list[:50]
 #wd.current_url
 
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
@@ -111,46 +113,72 @@ print(link_list)
 import pandas as pd
 data = pd.DataFrame()
 
-for url in link_list:
+start = time.time()
+for url in link_list2:
     #path = 'C:\Program Files (x86)\chromedriver.exe'
     wd = webdriver.Chrome(path)
     wd.get(url)
-    # time.sleep(1)
+    time.sleep(1)
+    page = wd.page_source
+    soup = BeautifulSoup(page, 'lxml')
 
     'Extract Data Elements'
-
-    company = WebDriverWait(wd, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'company-name'))).text
-    level = WebDriverWait(wd, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'level-text'))).text
-    job_family = WebDriverWait(wd, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'job-family-text'))).text
-    total_comp = WebDriverWait(wd, 10).until(
-        EC.presence_of_element_located((By.CLASS_NAME, 'total-average-compensation'))).text
-    base_salary = WebDriverWait(wd, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'base-salary-value'))).text
-    stock = WebDriverWait(wd, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'stock-salary-value'))).text
-    bonus = WebDriverWait(wd, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'bonus-salary-value'))).text
-    job_title = WebDriverWait(wd, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'title-text'))).text
-    years_exp = WebDriverWait(wd, 10).until(
-        EC.presence_of_element_located((By.CLASS_NAME, 'years-of-experience-text'))).text
-    years_company = WebDriverWait(wd, 10).until(
-        EC.presence_of_element_located((By.CLASS_NAME, 'years-at-company-text'))).text
-    years_level = WebDriverWait(wd, 10).until(
-        EC.presence_of_element_located((By.CLASS_NAME, 'years-at-level-text'))).text
-    location = WebDriverWait(wd, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'location-text'))).text
-    work_arrangement = WebDriverWait(wd, 10).until(
-        EC.presence_of_element_located((By.CLASS_NAME, 'work-arrangement-text'))).text
-    date = WebDriverWait(wd, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'submitted-on'))).text
-
+    company = soup.find("h3", {"class": "company-name"}).text
+    #level can sometimes be "None"
+    level = soup.find("h3", {"class":"level-text"})
+    if level is None:
+        level = ''
+    else:
+        level = level.text
+    job_family = soup.find("h3", {"class":"job-family-text"}).text
+    #total_comp displays the wrong value. Removed it from the dictionary
+    #total_comp = soup.find("span", {"class": "total-average-compensation"}).text
+    base_salary = soup.find("p", {"class":"base-salary-value"}).text
+    stock = soup.find("p", {"class":"stock-salary-value"}).text
+    bonus = soup.find("p", {"class":"bonus-salary-value"}).text
+    job_title = soup.find("span", {"class":"title-text"}).text
+    years_exp = soup.find("span", {"class":"years-of-experience-text"}).text
+    years_company = soup.find("span", {"class":"years-at-company-text"}).text
+    years_level = soup.find("span", {"class":"years-at-level-text"}).text
+    location = soup.find("p", {"class":"location-text"}).text
+    work_arrangement = soup.find("p", {"class":"work-arrangement-text"}).text
+    perspective = soup.find("p", {"class":"comp-perspective-text"}).text
+    date = soup.find("p", {"class":"submitted-on"}).text
+    education = soup.find("p", {"class":"education-text"})
+    if education is None:
+        education = ''
+    else:
+        education = education.text
+    gender = soup.find("p", {"class":"gender-text"})
+    if gender is None:
+        gender = ''
+    else:
+        gender = gender.text
+    ethnicity = soup.find("p", {"class":"ethnicity-text"})
+    if ethnicity is None:
+        ethnicity = ''
+    else:
+        ethnicity = ethnicity.text
+    focus = soup.find("p", {"class":"focus-tag-text"})
+    if focus is None:
+        focus = ''
+    else:
+        focus = focus.text
+    
     'Store Data Elmenents in Dictionary'
 
-    salary_dict = {'company': company, 'level': level, 'job_family': job_family, 'total_comp': total_comp,
+    salary_dict = {'company': company, 'level': level, 'job_family': job_family, 'job_title': job_title, 
+                   'perspective': perspective, 'education': education, 'gender': gender, 'ethnicity': ethnicity,
                    'base_salary': base_salary, 'stock': stock, 'bonus': bonus, 'years_exp': years_exp,
                    'years_company': years_company, 'years_level': years_level, 'location': location,
-                   'work_arrangement': work_arrangement, 'date': date}
+                   'focus_tag': focus, 'work_arrangement': work_arrangement, 'date': date}
 
     'Append Dictionary to Dataframe'
 
     data = data.append(salary_dict, ignore_index=True)
     print(data)
 
+print("Total time to run beautiful soup version = " + str(time.time() - start))
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 'URL Formatting to generate all combinations of URLS from location and job title'
