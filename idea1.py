@@ -15,7 +15,7 @@ from xlwings.constants import TimeUnit
 import math
 
 #Start the automation
-#path = "chromedriver.exe"
+path = r"C:\Users\Statistician X\Downloads\chromedriver_win32\chromedriver.exe"
 options = Options()
 #options.add_argument('--headless')
 options.add_argument('--disable-gpu')
@@ -24,7 +24,7 @@ options.add_argument('--disable-dev-shm-usage')
 
 wd = webdriver.Chrome(path, chrome_options = options)
 #wd = webdriver.Safari()
-url = 'https://www.levels.fyi/comp.html?track=Data%20Scientist&region=819'
+url = 'https://www.levels.fyi/comp.html?track=Data%20Scientist&region=803'
 wd.get(url)
 
 element = WebDriverWait(wd,10).until(EC.presence_of_element_located((By.CLASS_NAME,'dropdown')))
@@ -87,16 +87,18 @@ for i in range(num_pages):
         print(l)
 
 #Click next button
-#There's probably a way to do this without a try/except loop
-    try:
+    if i < num_pages - 1:
         # element2 = WebDriverWait(wd, 50).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.page-next a')))
         time.sleep(0.5)
-        element2 = WebDriverWait(wd, 50).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[3]/div[2]/div[4]/div/div[1]/div[1]/div[3]/div[2]/ul/li[9]/a')))
+        #Page next tag is dynamic based on how many pages there are. This accounts for URLs with fewer observations.
+        tag = '/html/body/div[3]/div[2]/div[4]/div/div[1]/div[1]/div[3]/div[2]/ul/li[{}]/a'.format(min(num_pages+2, 9))
+        element2 = WebDriverWait(wd, 50).until(EC.presence_of_element_located((By.XPATH, tag)))
         element2.click()
         time.sleep(0.5)
         page_next += 1
-    except:
+    else:
         #At the last page, reset page_next for the next URL
+        print("Huzzah!")
         page_next = 0
 
 
